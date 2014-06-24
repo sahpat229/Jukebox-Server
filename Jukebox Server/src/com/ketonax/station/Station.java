@@ -27,10 +27,6 @@ public class Station {
 		stationGUID = NamingService.assignGUID();
 	}
 
-	public void setStationName(String stationName) {
-		this.stationName = stationName;
-	}
-
 	public String getName() {
 		return stationName;
 	}

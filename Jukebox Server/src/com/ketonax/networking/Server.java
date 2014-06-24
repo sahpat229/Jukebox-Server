@@ -48,7 +48,6 @@ public class Server {
 		allUsers = new ArrayList<GUID>();
 
 		/* Test Functions */
-
 		GUID[] users = new GUID[3];
 		GUID[] songs = new GUID[3];
 
@@ -78,6 +77,8 @@ public class Server {
 		} catch (ServerException e) {
 			System.err.println(e.getMessage());
 		}
+		
+		/*Test End*/
 	}
 
 	public static void createStation(String stationName, GUID userGUID)
@@ -125,10 +126,6 @@ public class Server {
 			}
 		} else
 			throw new ServerException("stationGUID not found on stationMap.");
-	}
-
-	public static void sendStationMembers(Station station, GUID userGUID) {
-		/* Sends the GUIDs of all station members to a specified user */
 	}
 
 	public static void sendStationList() {
