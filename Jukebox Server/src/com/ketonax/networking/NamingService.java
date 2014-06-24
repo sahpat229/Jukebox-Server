@@ -9,7 +9,7 @@ public class NamingService {
 	public static GUID assignGUID() {
 
 		GUID id = new GUID(guid);
-		guid++;
+		guid++;//should replace with an algorithm
 
 		return id;
 	}
