@@ -1,84 +1,82 @@
 package com.ketonax.networking;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import com.ketonax.station.Station;
-import com.ketonax.station.StationException;
 
 import edu.rutgers.winlab.jmfapi.GUID;
 
 public class Server {
 
 	static GUID SERVER_GUID;
-	static ArrayList<Station> jbStationList = null;
-	static HashMap<GUID, Station> stationMap = null;
+	static List<Station> stationList = null;
 	static ArrayList<GUID> allUsers = null;
 
-	/**
-	 * Server checks the beginning of messages for command strings Separate
-	 * multiple strings with ',' Creating a new station:
-	 * "/new_station,station name,userGUID"
-	 * 
-	 * Adding a user to a station: "/join_station,stationName,userGUID"
-	 * 
-	 * Adding a song to a station: "/add_song,songGUID,userGUID"
-	 * */
-	/* Commands To Server */
-	static String CREATE_STATION_CMD = "/new_station";
-	static String JOIN_STATION_CMD = "/join_station";
-	static String LEAVE_STATION_CMD = "/leave_station";
-	static String ADD_SONG_CMD = "/add_song";
-
-	/**
-	 * Multiple strings are separated with ','
-	 * */
-	/* Response Headers */
-	static String USER_GUID_RESPONSE = "/user_GUID_value"; // Return GUID.
+	// Server checks the beginning of messages for command strings
+	// Separate multiple strings with ','
+	// Examples
+	// Creating a new station: "/new_station,station name,userGUID"
+	// Notify station terminated: "/station_terminated,stationGUID"
 
 	/* Commands To Devices */
-	static String PLAY_SONG_GUID_CMD = "/play_song"; // Return song GUID.
 
+	/* Commands To Server */
+	private static final String REQUEST_DEVICE_GUID_CMD = "/request_device_guid";
+	private static final String REQUEST_SONG_GUID_CMD = "/request_song_guid";
+	private static final String CREATE_STATION_CMD = "/new_station";
+	private static final String STATION_LIST_REQUEST_CMD = "/request_station_list";
+
+	/* Notification to devices */
+	private static final String STATION_KILLED_NOTIFIER = "/station_terminated";
+	private static final String RECEIVE_STATION_LIST_NOTIFIER = "/station_list_updated";
+
+	/* Response to devices */
+	private static final String USER_GUID_RESPONSE = "/user_guid_value";
+	private static final String SONG_GUID_RESPONSE = "/song_guid_value";
+	
 	public static void main(String[] args) {
 
 		/* Initialize variables */
 		SERVER_GUID = NamingService.assignGUID();
-		jbStationList = new ArrayList<Station>();
-		stationMap = new HashMap<GUID, Station>();
+		stationList = Collections.synchronizedList(new ArrayList<Station>());
 		allUsers = new ArrayList<GUID>();
 
-		/* Test Functions */
-		GUID[] users = new GUID[3];
-		GUID[] songs = new GUID[3];
-
-		for (int i = 0; i < 3; i++) {
-			users[i] = NamingService.assignGUID();
-			songs[i] = NamingService.assignGUID();
-		}
-
+		/* Demo Begin */
+		GUID user = NamingService.assignGUID();
 		try {
-			createStation("Station 1", users[0]);
-			createStation("Station 2", users[2]);
+			String stationHeader = "Station ";
+
+			for (int i = 0; i < 10; i++) {
+
+				String stationName = null;
+				stationName = stationHeader + (i + 1);
+				createStation(stationName, user);
+			}
 		} catch (ServerException e) {
 			System.err.println(e.getMessage());
 		}
+		/* Demo End */
 
-		try {
-			joinStation(users[0], jbStationList.get(0).getGUID());
-			joinStation(users[1], jbStationList.get(0).getGUID());
-			joinStation(users[2], jbStationList.get(0).getGUID());
+		while (true) {
+			/* Listen for incoming commands */
+			// TODO MobilityFirst network magic
 
-			jbStationList.get(0).addSong(users[0], songs[0], 1000);
-			jbStationList.get(0).addSong(users[1], songs[0], 1000);
-			jbStationList.get(0).addSong(users[2], songs[0], 1000);
+			/* Check to see if stations are running */
+			synchronized (stationList) {
 
-		} catch (StationException e) {
-			System.err.println(e.getMessage());
-		} catch (ServerException e) {
-			System.err.println(e.getMessage());
+				Iterator<Station> it = stationList.iterator();
+				while (it.hasNext()) {
+					Station s = it.next();
+					if (s.hasStopped()) {
+						it.remove();
+						// TODO send updated station list to all users
+					}
+				}
+			}
 		}
-		
-		/*Test End*/
 	}
 
 	public static void createStation(String stationName, GUID userGUID)
@@ -91,44 +89,16 @@ public class Server {
 		if (!allUsers.contains(userGUID))
 			allUsers.add(userGUID);
 
-		if (!jbStationList.contains(station)) {
-			jbStationList.add(station);
-			stationMap.put(station.getGUID(), station);
-		} else
-			throw new ServerException("Station not on jbStationList.");
+		synchronized (stationList) {
+			if (!stationList.contains(station)) {
+				stationList.add(station);
+				new Thread(station).start();// Start new station thread
+			} else
+				throw new ServerException("Station not on stationList.");
+		}
 	}
 
-	public static void joinStation(GUID userGUID, GUID stationGUID)
-			throws ServerException {
-		/* Add user to a station */
-
-		// Add user to allUsers list
-		if (!allUsers.contains(userGUID))
-			allUsers.add(userGUID);
-
-		if (stationMap.containsKey(stationGUID))
-			stationMap.get(stationGUID).addUser(userGUID);
-		else
-			throw new ServerException("stationGUID (" + stationGUID.getGUID()
-					+ ") not found on stationMap.");
-
-	}
-
-	public static void leaveStation(GUID userGUID, GUID stationGUID)
-			throws ServerException {
-		/* Remove user from a station */
-
-		if (stationMap.containsKey(stationGUID)) {
-			try {
-				stationMap.get(stationGUID).removeUser(userGUID);
-			} catch (StationException e) {
-				System.err.println(e.getMessage());
-			}
-		} else
-			throw new ServerException("stationGUID not found on stationMap.");
-	}
-
-	public static void sendStationList() {
+	public static void sendStationList(GUID userGUID) {
 		/* Sends the a list of the station names to all devices */
 	}
 }
