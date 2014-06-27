@@ -76,6 +76,23 @@ public class Station {
 		songLengthMap.put(songGUID, songLength);
 	}
 
+	/** Returns the list of songs winthin the staion as an Array List of strings*/
+ 	public ArrayList<string> returnSongs()
+ 	{
+ 		if(songList == null)
+ 			throw new StationExeption("No music on the Station.");
+ 		else
+ 		{
+ 			ArrayList temp = new ArrayList<string>;
+ 			for(int i = 0; i<songList.size(); i++)
+ 			{
+ 				temp.add(songList.get(i).get(songGUID);
+ 			}
+ 			return(temp);
+ 		}
+ 		
+ 	}
+
 	public GUID getSongSource(GUID songGUID) throws StationException {
 		/* Returns the GUID of the user device holding the given song */
 
