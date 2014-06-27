@@ -15,11 +15,6 @@ public class Server {
 	static List<Station> stationList = null;
 	static ArrayList<GUID> allUsers = null;
 
-	// Server checks the beginning of messages for command strings
-	// Separate multiple strings with ','
-	// Examples
-	// Creating a new station: "/new_station,station name,userGUID"
-	// Notify station terminated: "/station_terminated,stationGUID"
 
 	/* Commands To Devices */
 
@@ -98,7 +93,9 @@ public class Server {
 		}
 	}
 
-	public static void sendStationList(GUID userGUID) {
+
+	public static List<Station> sendStationList(GUID userGUID) {
 		/* Sends the a list of the station names to all devices */
+		return stationList;
 	}
 }
