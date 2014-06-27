@@ -128,7 +128,8 @@ public class Server {
 			throw new ServerException("stationGUID not found on stationMap.");
 	}
 
-	public static void sendStationList() {
+	public static ArrayList<Station> sendStationList() {
 		/* Sends the a list of the station names to all devices */
+		return (jbStationList);
 	}
 }
