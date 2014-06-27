@@ -15,7 +15,7 @@ public class Server {
 	static HashMap<GUID, Station> stationMap = null;
 	static ArrayList<GUID> allUsers = null;
 
-	/**
+	/*
 	 * Server checks the beginning of messages for command strings Separate
 	 * multiple strings with ',' Creating a new station:
 	 * "/new_station,station name,userGUID"
@@ -23,7 +23,7 @@ public class Server {
 	 * Adding a user to a station: "/join_station,stationName,userGUID"
 	 * 
 	 * Adding a song to a station: "/add_song,songGUID,userGUID"
-	 * */
+	 */
 	/* Commands To Server */
 	static String CREATE_STATION_CMD = "/new_station";
 	static String JOIN_STATION_CMD = "/join_station";
